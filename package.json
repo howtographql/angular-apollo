@@ -24,6 +24,7 @@
     "apollo-angular": "^0.13.1",
     "apollo-client": "^1.9.2",
     "core-js": "^2.4.1",
+    "graphql-tag": "^2.4.2",
     "rxjs": "^5.4.2",
     "zone.js": "^0.8.14"
   },
