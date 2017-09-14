@@ -29,6 +29,7 @@ export class LinkListComponent implements OnInit {
       this.loading = response.data.loading;
     });
 
+
   }
 
 }

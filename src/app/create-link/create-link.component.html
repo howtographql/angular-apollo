@@ -1,0 +1,18 @@
+<div class='flex flex-column mt3'>
+  <input
+    class='mb2'
+    [(ngModel)]="description"
+    type='text'
+    placeholder='A description for the link'
+  />
+  <input
+    class='mb2'
+    [(ngModel)]="url"
+    type='text'
+    placeholder='The URL for the link'
+  />
+</div>
+<button
+  (click)="createLink()">
+  Submit
+</button>

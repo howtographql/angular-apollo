@@ -16,7 +16,7 @@ export class LinkItemComponent implements OnInit {
   ngOnInit() {
   }
 
-  _voteForLink = async () => {
+  voteForLink = async () => {
     // ... you'll implement this in chapter 6
   }
 }
