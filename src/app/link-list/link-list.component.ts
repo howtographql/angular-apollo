@@ -5,7 +5,7 @@ import {Link} from '../types';
 import {ALL_LINKS_QUERY, AllLinkQueryResponse} from '../graphql';
 
 @Component({
-  selector: 'link-list',
+  selector: 'hn-link-list',
   templateUrl: './link-list.component.html',
   styleUrls: ['./link-list.component.css']
 })

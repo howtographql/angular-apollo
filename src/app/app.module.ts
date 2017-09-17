@@ -8,6 +8,8 @@ import {LinkListComponent} from './link-list/link-list.component';
 import {LinkItemComponent} from './link-item/link-item.component';
 import {CreateLinkComponent} from './create-link/create-link.component';
 import {FormsModule} from '@angular/forms';
+import {HeaderComponent} from './header/header.component';
+import {AppRoutingModule} from './app.routing.module';
 
 @NgModule({
   declarations: [
@@ -15,10 +17,12 @@ import {FormsModule} from '@angular/forms';
     LinkListComponent,
     LinkItemComponent,
     CreateLinkComponent,
+    HeaderComponent,
   ],
   imports: [
     BrowserModule,
     FormsModule,
+    AppRoutingModule,
     ApolloModule.forRoot(provideClient)
   ],
   providers: [],
