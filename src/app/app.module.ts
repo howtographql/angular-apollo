@@ -10,6 +10,8 @@ import {CreateLinkComponent} from './create-link/create-link.component';
 import {FormsModule} from '@angular/forms';
 import {HeaderComponent} from './header/header.component';
 import {AppRoutingModule} from './app.routing.module';
+import {LoginComponent} from './login/login.component';
+import {AuthService} from './auth.service';
 
 @NgModule({
   declarations: [
@@ -18,6 +20,7 @@ import {AppRoutingModule} from './app.routing.module';
     LinkItemComponent,
     CreateLinkComponent,
     HeaderComponent,
+    LoginComponent
   ],
   imports: [
     BrowserModule,
@@ -25,7 +28,9 @@ import {AppRoutingModule} from './app.routing.module';
     AppRoutingModule,
     ApolloModule.forRoot(provideClient)
   ],
-  providers: [],
+  providers: [
+    AuthService
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule {

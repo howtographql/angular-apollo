@@ -1,0 +1,28 @@
+<h4 class='mv3'>{{login ? 'Login' : 'Sign Up'}}</h4>
+<div class='flex flex-column'>
+  <input
+    *ngIf="!login"
+    [(ngModel)]="name"
+    type="text"
+    placeholder="Your name">
+  <input
+    [(ngModel)]="email"
+    type="text"
+    placeholder="Your email address">
+  <input
+    [(ngModel)]="password"
+    type="password"
+    placeholder="Password">
+</div>
+<div class='flex mt3'>
+  <div
+    class='pointer mr2 button'
+    (click)="confirm()">
+    {{login ? 'login' : 'create account'}}
+  </div>
+  <div
+    class='pointer button'
+    (click)="login = !login">
+    {{login ? 'need to create an account?' : 'already have an account?'}}
+  </div>
+</div>
