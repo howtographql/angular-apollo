@@ -1,5 +1,5 @@
 # project: cj7hinwz504ao01273pjz29is
-# version: 4
+# version: 5
 
 type Link implements Node {
   createdAt: DateTime!
@@ -8,6 +8,7 @@ type Link implements Node {
   updatedAt: DateTime!
   url: String!
   postedBy: User @relation(name: "UsersLinks")
+  votes: [Vote!]! @relation(name: "VotesOnLink")
 }
 
 type User implements Node {
@@ -18,6 +19,7 @@ type User implements Node {
   name: String!
   password: String
   links: [Link!]! @relation(name: "UsersLinks")
+  votes: [Vote!]! @relation(name: "UsersVotes")
 }
 
 type File implements Node {
@@ -29,4 +31,10 @@ type File implements Node {
   size: Int!
   updatedAt: DateTime!
   url: String! @isUnique
+}
+
+type Vote implements Node {
+  id: ID! @isUnique
+  user: User! @relation(name: "UsersVotes")
+  link: Link! @relation(name: "VotesOnLink")
 }

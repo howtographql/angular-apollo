@@ -1,1 +1,13 @@
-<div>{{link.description}} ({{link.url}})</div>
+<div class="flex mt2 items-start">
+  <div class="flex items-center">
+    <span class="gray">{{index+1}}.</span>
+    <div *ngIf="isAuthenticated" class="ml1 gray f11 upvote" (click)="voteForLink()">▲</div>
+  </div>
+  <div class="ml1">
+    <a [href]="link.url" class="link">{{link.description}} ({{link.url}})</a>
+    <div class="f6 lh-copy gray">
+      {{link.votes.length}} votes | by {{link.postedBy ? link.postedBy.name : 'Unknown'}}
+      {{humanizeDate(link.createdAt)}}
+    </div>
+  </div>
+</div>
