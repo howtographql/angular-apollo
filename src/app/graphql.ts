@@ -145,3 +145,36 @@ export interface CreateVoteMutationResponse {
     user: User;
   };
 }
+
+
+export const ALL_LINKS_SEARCH_QUERY = gql`
+  query AllLinksSearchQuery($searchText: String!) {
+    allLinks(filter: {
+      OR: [{
+        url_contains: $searchText
+      }, {
+        description_contains: $searchText
+      }]
+    }) {
+      id
+      url
+      description
+      createdAt
+      postedBy {
+        id
+        name
+      }
+      votes {
+        id
+        user {
+          id
+        }
+      }
+    }
+  }
+`;
+
+export interface AllLinksSearchQueryResponse {
+  loading: boolean;
+  allLinks: Link[];
+}

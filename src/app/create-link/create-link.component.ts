@@ -1,17 +1,20 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {Apollo} from 'apollo-angular';
 import {ALL_LINKS_QUERY, CREATE_LINK_MUTATION, CreateLinkMutationResponse} from '../graphql';
 import {Router} from '@angular/router';
 import {GC_USER_ID} from '../constants';
+import {Subscription} from 'rxjs/Subscription';
 
 @Component({
   selector: 'hn-create-link',
   templateUrl: './create-link.component.html',
   styleUrls: ['./create-link.component.css']
 })
-export class CreateLinkComponent implements OnInit {
+export class CreateLinkComponent implements OnInit, OnDestroy {
   description: string = '';
   url: string = '';
+
+  subscriptions: Subscription[] = [];
 
   constructor(private apollo: Apollo, private router: Router) {
   }
@@ -31,7 +34,7 @@ export class CreateLinkComponent implements OnInit {
     this.description = '';
     this.url = '';
 
-    this.apollo.mutate<CreateLinkMutationResponse>({
+    const createMutationSubscription = this.apollo.mutate<CreateLinkMutationResponse>({
       mutation: CREATE_LINK_MUTATION,
       variables: {
         description: newDescription,
@@ -49,10 +52,20 @@ export class CreateLinkComponent implements OnInit {
     }).subscribe((response) => {
       // We injected the Router service
       this.router.navigate(['/']);
-    }, (error)=>{
+    }, (error) => {
       console.error(error);
       this.description = newDescription;
       this.url = newUrl;
     });
+
+    this.subscriptions = [...this.subscriptions, createMutationSubscription];
+  }
+
+  ngOnDestroy(): void {
+    for (let sub of this.subscriptions) {
+      if (sub && sub.unsubscribe) {
+        sub.unsubscribe();
+      }
+    }
   }
 }
