@@ -1,8 +1,8 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {Apollo} from 'apollo-angular';
+import {Apollo, ApolloQueryObservable} from 'apollo-angular';
 import {Link} from '../types';
 // 1
-import {ALL_LINKS_QUERY, AllLinkQueryResponse} from '../graphql';
+import {ALL_LINKS_QUERY, AllLinkQueryResponse, NEW_LINKS_SUBSCRIPTION, NEW_VOTES_SUBSCRIPTION} from '../graphql';
 import {AuthService} from '../auth.service';
 import {Subscription} from 'rxjs/Subscription';
 
@@ -30,9 +30,42 @@ export class LinkListComponent implements OnInit, OnDestroy {
         this.logged = isAuthenticated
       });
 
-    const querySubscription = this.apollo.watchQuery<AllLinkQueryResponse>({
+    const allLinkQuery: ApolloQueryObservable<AllLinkQueryResponse> = this.apollo.watchQuery<AllLinkQueryResponse>({
       query: ALL_LINKS_QUERY
-    }).subscribe((response) => {
+    });
+
+    allLinkQuery
+      .subscribeToMore({
+        document: NEW_LINKS_SUBSCRIPTION,
+        updateQuery: (previous, { subscriptionData }) => {
+          const newAllLinks = [
+            subscriptionData.data.Link.node,
+            ...previous.allLinks
+          ];
+          return {
+            ...previous,
+            allLinks: newAllLinks
+          }
+        }
+      });
+
+    allLinkQuery
+      .subscribeToMore({
+        document: NEW_VOTES_SUBSCRIPTION,
+        updateQuery: (previous, { subscriptionData }) => {
+          const votedLinkIndex = previous.allLinks.findIndex(link =>
+            link.id === subscriptionData.data.Vote.node.link.id);
+          const link = subscriptionData.data.Vote.node.link;
+          const newAllLinks = previous.allLinks.slice();
+          newAllLinks[votedLinkIndex] = link;
+          return {
+            ...previous,
+            allLinks: newAllLinks
+          }
+        }
+      });
+
+    const querySubscription = allLinkQuery.subscribe((response) => {
       this.allLinks = response.data.allLinks;
       this.loading = response.data.loading;
     });
