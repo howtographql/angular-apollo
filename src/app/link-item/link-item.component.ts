@@ -5,6 +5,7 @@ import {ALL_LINKS_QUERY, CREATE_VOTE_MUTATION} from '../graphql';
 import {GC_USER_ID} from '../constants';
 import {Apollo} from 'apollo-angular';
 import {Subscription} from 'rxjs/Subscription';
+import { LINKS_PER_PAGE } from '../constants'
 
 @Component({
   selector: 'hn-link-item',
@@ -19,8 +20,12 @@ export class LinkItemComponent implements OnInit, OnDestroy {
   index: number = 0;
 
   @Input()
+  pageNumber: number = 0;
+
+  @Input()
   isAuthenticated: boolean = false;
 
+  linksPerPage = LINKS_PER_PAGE;
   subscriptions: Subscription[] = [];
 
   constructor(private apollo: Apollo) {

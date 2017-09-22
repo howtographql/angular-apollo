@@ -43,11 +43,24 @@ export class CreateLinkComponent implements OnInit, OnDestroy {
       },
       update: (store, { data: { createLink } }) => {
         const data: any = store.readQuery({
-          query: ALL_LINKS_QUERY
+          query: ALL_LINKS_QUERY,
+          variables: {
+            first: 5,
+            skip: 0,
+            orderBy: 'createdAt_DESC'
+          }
         });
 
         data.allLinks.push(createLink);
-        store.writeQuery({ query: ALL_LINKS_QUERY, data })
+        store.writeQuery({
+          query: ALL_LINKS_QUERY,
+          variables: {
+            first: 5,
+            skip: 0,
+            orderBy: 'createdAt_DESC'
+          },
+          data
+        })
       },
     }).subscribe((response) => {
       // We injected the Router service
