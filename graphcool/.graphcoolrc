@@ -1,0 +1,3 @@
+default: dev
+environments:
+  dev: cj800rwqq08kj01934lxwc8ep
