@@ -9,7 +9,7 @@ import {LinkItemComponent} from './link-item/link-item.component';
 import {CreateLinkComponent} from './create-link/create-link.component';
 import {FormsModule} from '@angular/forms';
 import {HeaderComponent} from './header/header.component';
-import {AppRoutingModule} from './app.routing.module';
+import {AppRoutingModule} from './app.routing';
 import {LoginComponent} from './login/login.component';
 import {AuthService} from './auth.service';
 import {SearchComponent} from './search/search.component';
@@ -22,7 +22,7 @@ import {SearchComponent} from './search/search.component';
     CreateLinkComponent,
     HeaderComponent,
     LoginComponent,
-    SearchComponent
+    SearchComponent,
   ],
   imports: [
     BrowserModule,
