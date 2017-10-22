@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {Apollo, ApolloQueryObservable} from 'apollo-angular';
+import {Apollo} from 'apollo-angular';
 import {Link} from '../types';
-import {ALL_LINKS_QUERY, AllLinkQueryResponse, NEW_LINKS_SUBSCRIPTION, NEW_VOTES_SUBSCRIPTION} from '../graphql';
+import {ALL_LINKS_QUERY, AllLinkQueryResponse} from '../graphql';
 import {AuthService} from '../auth.service';
 import {Subscription} from 'rxjs/Subscription';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -13,6 +13,7 @@ import 'rxjs/add/observable/combineLatest';
 import {LINKS_PER_PAGE} from '../constants';
 import {Observable} from 'rxjs/Observable';
 import _ from 'lodash';
+import {ApolloQueryResult} from 'apollo-client';
 
 @Component({
   selector: 'hn-link-list',
@@ -75,14 +76,14 @@ export class LinkListComponent implements OnInit, OnDestroy {
       });
 
     // 5
-    const allLinkQuery: ApolloQueryObservable<AllLinkQueryResponse> = this.apollo.watchQuery<AllLinkQueryResponse>({
-      query: ALL_LINKS_QUERY,
-      variables: {
-        first: first$,
-        skip: skip$,
-        orderBy: orderBy$
-      }
-    });
+    const allLinkQuery: Observable<ApolloQueryResult<AllLinkQueryResponse>> = Observable
+      .combineLatest(first$, skip$, orderBy$, (first, skip, orderBy) => ({ first, skip, orderBy }))
+      .switchMap((variables: any) => {
+        return this.apollo.watchQuery<AllLinkQueryResponse>({
+          query: ALL_LINKS_QUERY,
+          variables
+        }).valueChanges;
+      });
 
     // 6
     const querySubscription = allLinkQuery.subscribe((response) => {
