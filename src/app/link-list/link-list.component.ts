@@ -1,13 +1,7 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {Apollo} from 'apollo-angular';
 import {Link} from '../types';
-import {
-  ALL_LINKS_QUERY,
-  AllLinkQueryResponse,
-  NEW_LINKS_SUBSCRIPTION,
-  NEW_VOTES_SUBSCRIPTION,
-  NewVoteSubcriptionResponse
-} from '../graphql';
+import {ALL_LINKS_QUERY, AllLinkQueryResponse, NEW_LINKS_SUBSCRIPTION, NEW_VOTES_SUBSCRIPTION} from '../graphql';
 import {AuthService} from '../auth.service';
 import {Subscription} from 'rxjs/Subscription';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -108,12 +102,12 @@ export class LinkListComponent implements OnInit, OnDestroy {
       query
         .subscribeToMore({
           document: NEW_VOTES_SUBSCRIPTION,
-          updateQuery: (previous: AllLinkQueryResponse, { subscriptionData }) => {
+          updateQuery: (previous: AllLinkQueryResponse, { subscriptionData }: { subscriptionData: any }) => {
 
             const votedLinkIndex = previous.allLinks.findIndex(link =>
-              link.id === subscriptionData.data.Vote.node.link.id);
+              link.id === subscriptionData.Vote.node.link.id);
 
-            const link = subscriptionData.data.Vote.node.link;
+            const link = subscriptionData.Vote.node.link;
 
             const newAllLinks = previous.allLinks.slice();
             newAllLinks[votedLinkIndex] = link;
