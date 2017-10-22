@@ -359,6 +359,12 @@ apollo-link-dedup@0.6.0:
   version "0.6.0"
   resolved "https://registry.yarnpkg.com/apollo-link-dedup/-/apollo-link-dedup-0.6.0.tgz#67861f6e71f5237e514ace8e409ec7b972ce8a3c"
 
+apollo-link-ws@^0.6.0:
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/apollo-link-ws/-/apollo-link-ws-0.6.0.tgz#41a551368d0cbd138a61e9e45e8355aaf32409de"
+  dependencies:
+    subscriptions-transport-ws "^0.9.0"
+
 apollo-link@0.8.0, apollo-link@^0.8.0:
   version "0.8.0"
   resolved "https://registry.yarnpkg.com/apollo-link/-/apollo-link-0.8.0.tgz#efce6b35ae9ea5f6966a87054ba4893a5b6d960a"
@@ -5111,7 +5117,7 @@ stylus@^0.54.5:
     sax "0.5.x"
     source-map "0.1.x"
 
-subscriptions-transport-ws@^0.9.1:
+subscriptions-transport-ws@^0.9.0, subscriptions-transport-ws@^0.9.1:
   version "0.9.1"
   resolved "https://registry.yarnpkg.com/subscriptions-transport-ws/-/subscriptions-transport-ws-0.9.1.tgz#66488bd5997b6081277a25d6a3015a5aceffed63"
   dependencies:

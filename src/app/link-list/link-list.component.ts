@@ -1,7 +1,13 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {Apollo} from 'apollo-angular';
 import {Link} from '../types';
-import {ALL_LINKS_QUERY, AllLinkQueryResponse} from '../graphql';
+import {
+  ALL_LINKS_QUERY,
+  AllLinkQueryResponse,
+  NEW_LINKS_SUBSCRIPTION,
+  NEW_VOTES_SUBSCRIPTION,
+  NewVoteSubcriptionResponse
+} from '../graphql';
 import {AuthService} from '../auth.service';
 import {Subscription} from 'rxjs/Subscription';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -75,14 +81,59 @@ export class LinkListComponent implements OnInit, OnDestroy {
         return isNewPage ? 'createdAt_DESC' : null;
       });
 
+    const setupQuery = (variables) => {
+      const query = this.apollo.watchQuery<AllLinkQueryResponse>({
+        query: ALL_LINKS_QUERY,
+        variables
+      });
+
+      // Comment due to issue : https://github.com/kamilkisiela/apollo-client-rxjs/issues/37
+      query
+        .subscribeToMore({
+          document: NEW_LINKS_SUBSCRIPTION,
+          updateQuery: (previous: AllLinkQueryResponse, { subscriptionData }) => {
+
+            // Casting to any because typings are not updated
+            const newAllLinks = [
+              (<any>subscriptionData).Link.node,
+              ...previous.allLinks
+            ];
+            return {
+              ...previous,
+              allLinks: newAllLinks
+            }
+          }
+        });
+
+      query
+        .subscribeToMore({
+          document: NEW_VOTES_SUBSCRIPTION,
+          updateQuery: (previous: AllLinkQueryResponse, { subscriptionData }) => {
+
+            const votedLinkIndex = previous.allLinks.findIndex(link =>
+              link.id === subscriptionData.data.Vote.node.link.id);
+
+            const link = subscriptionData.data.Vote.node.link;
+
+            const newAllLinks = previous.allLinks.slice();
+            newAllLinks[votedLinkIndex] = link;
+
+            return {
+              ...previous,
+              allLinks: newAllLinks
+            }
+          }
+        });
+
+      return query;
+    };
+
     // 5
     const allLinkQuery: Observable<ApolloQueryResult<AllLinkQueryResponse>> = Observable
       .combineLatest(first$, skip$, orderBy$, (first, skip, orderBy) => ({ first, skip, orderBy }))
       .switchMap((variables: any) => {
-        return this.apollo.watchQuery<AllLinkQueryResponse>({
-          query: ALL_LINKS_QUERY,
-          variables
-        }).valueChanges;
+
+        return setupQuery(variables).valueChanges;
       });
 
     // 6
@@ -92,40 +143,7 @@ export class LinkListComponent implements OnInit, OnDestroy {
       this.loading = response.data.loading;
     });
 
-    // Comment due to issue : https://github.com/kamilkisiela/apollo-client-rxjs/issues/37
-    // allLinkQuery
-    //   .subscribeToMore({
-    //     document: NEW_LINKS_SUBSCRIPTION,
-    //     updateQuery: (previous, { subscriptionData }) => {
-    //       const newAllLinks = [
-    //         subscriptionData.data.Link.node,
-    //         ...previous.allLinks
-    //       ];
-    //       return {
-    //         ...previous,
-    //         allLinks: newAllLinks
-    //       }
-    //     }
-    //   });
-    //
-    // allLinkQuery
-    //   .subscribeToMore({
-    //     document: NEW_VOTES_SUBSCRIPTION,
-    //     updateQuery: (previous, { subscriptionData }) => {
-    //       const votedLinkIndex = previous.allLinks.findIndex(link =>
-    //         link.id === subscriptionData.data.Vote.node.link.id);
-    //       const link = subscriptionData.data.Vote.node.link;
-    //       const newAllLinks = previous.allLinks.slice();
-    //       newAllLinks[votedLinkIndex] = link;
-    //       return {
-    //         ...previous,
-    //         allLinks: newAllLinks
-    //       }
-    //     }
-    //   });
-
     this.subscriptions = [...this.subscriptions, querySubscription];
-
   }
 
   get orderedLinks(): Observable<Link[]> {
