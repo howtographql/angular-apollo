@@ -2,8 +2,7 @@ import {BrowserModule} from '@angular/platform-browser';
 import {NgModule} from '@angular/core';
 
 import {AppComponent} from './app.component';
-import {provideClient} from './apollo.config';
-import {ApolloModule} from 'apollo-angular';
+import {GraphQLModule} from './apollo.config';
 import {LinkListComponent} from './link-list/link-list.component';
 import {LinkItemComponent} from './link-item/link-item.component';
 import {CreateLinkComponent} from './create-link/create-link.component';
@@ -28,7 +27,7 @@ import {SearchComponent} from './search/search.component';
     BrowserModule,
     FormsModule,
     AppRoutingModule,
-    ApolloModule.forRoot(provideClient)
+    GraphQLModule
   ],
   providers: [
     AuthService

@@ -1,5 +1,5 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {Apollo, ApolloQueryObservable} from 'apollo-angular';
+import {Apollo} from 'apollo-angular';
 import {Link} from '../types';
 import {ALL_LINKS_QUERY, AllLinkQueryResponse, NEW_LINKS_SUBSCRIPTION, NEW_VOTES_SUBSCRIPTION} from '../graphql';
 import {AuthService} from '../auth.service';
@@ -13,6 +13,7 @@ import 'rxjs/add/observable/combineLatest';
 import {LINKS_PER_PAGE} from '../constants';
 import {Observable} from 'rxjs/Observable';
 import _ from 'lodash';
+import {ApolloQueryResult} from 'apollo-client';
 
 @Component({
   selector: 'hn-link-list',
@@ -75,56 +76,65 @@ export class LinkListComponent implements OnInit, OnDestroy {
       });
 
     // 5
-    const allLinkQuery: ApolloQueryObservable<AllLinkQueryResponse> = this.apollo.watchQuery<AllLinkQueryResponse>({
-      query: ALL_LINKS_QUERY,
-      variables: {
-        first: first$,
-        skip: skip$,
-        orderBy: orderBy$
-      }
-    });
+    const getQuery = (variables): Observable<ApolloQueryResult<AllLinkQueryResponse>> => {
+      const query = this.apollo.watchQuery<AllLinkQueryResponse>({
+        query: ALL_LINKS_QUERY,
+        variables
+      });
+
+      query
+        .subscribeToMore({
+          document: NEW_LINKS_SUBSCRIPTION,
+          updateQuery: (previous: AllLinkQueryResponse, { subscriptionData }) => {
+
+            // Casting to any because typings are not updated
+            const newAllLinks = [
+              (<any>subscriptionData).Link.node,
+              ...previous.allLinks
+            ];
+            return {
+              ...previous,
+              allLinks: newAllLinks
+            }
+          }
+        });
+
+      query
+        .subscribeToMore({
+          document: NEW_VOTES_SUBSCRIPTION,
+          updateQuery: (previous: AllLinkQueryResponse, { subscriptionData }: { subscriptionData: any }) => {
+
+            const votedLinkIndex = previous.allLinks.findIndex(link =>
+              link.id === subscriptionData.Vote.node.link.id);
+
+            const link = subscriptionData.Vote.node.link;
+
+            const newAllLinks = previous.allLinks.slice();
+            newAllLinks[votedLinkIndex] = link;
+
+            return {
+              ...previous,
+              allLinks: newAllLinks
+            }
+          }
+        });
+
+      return query.valueChanges;
+    };
 
     // 6
+    const allLinkQuery: Observable<ApolloQueryResult<AllLinkQueryResponse>> = Observable
+      .combineLatest(first$, skip$, orderBy$, (first, skip, orderBy) => ({ first, skip, orderBy }))
+      .switchMap((variables: any) => getQuery(variables));
+
+    // 7
     const querySubscription = allLinkQuery.subscribe((response) => {
       this.allLinks = response.data.allLinks;
       this.count = response.data._allLinksMeta.count;
       this.loading = response.data.loading;
     });
 
-    // Comment due to issue : https://github.com/kamilkisiela/apollo-client-rxjs/issues/37
-    // allLinkQuery
-    //   .subscribeToMore({
-    //     document: NEW_LINKS_SUBSCRIPTION,
-    //     updateQuery: (previous, { subscriptionData }) => {
-    //       const newAllLinks = [
-    //         subscriptionData.data.Link.node,
-    //         ...previous.allLinks
-    //       ];
-    //       return {
-    //         ...previous,
-    //         allLinks: newAllLinks
-    //       }
-    //     }
-    //   });
-    //
-    // allLinkQuery
-    //   .subscribeToMore({
-    //     document: NEW_VOTES_SUBSCRIPTION,
-    //     updateQuery: (previous, { subscriptionData }) => {
-    //       const votedLinkIndex = previous.allLinks.findIndex(link =>
-    //         link.id === subscriptionData.data.Vote.node.link.id);
-    //       const link = subscriptionData.data.Vote.node.link;
-    //       const newAllLinks = previous.allLinks.slice();
-    //       newAllLinks[votedLinkIndex] = link;
-    //       return {
-    //         ...previous,
-    //         allLinks: newAllLinks
-    //       }
-    //     }
-    //   });
-
     this.subscriptions = [...this.subscriptions, querySubscription];
-
   }
 
   get orderedLinks(): Observable<Link[]> {

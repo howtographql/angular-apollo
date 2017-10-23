@@ -44,10 +44,12 @@ export class SearchComponent implements OnInit, OnDestroy {
       variables: {
         searchText: this.searchText
       },
-    }).subscribe((response) => {
-      this.allLinks = response.data.allLinks;
-      this.loading = response.data.loading;
-    });
+    })
+      .valueChanges
+      .subscribe((response) => {
+        this.allLinks = response.data.allLinks;
+        this.loading = response.data.loading;
+      });
 
     this.subscriptions = [...this.subscriptions, querySubscription];
   }
