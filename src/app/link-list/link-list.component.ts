@@ -75,13 +75,13 @@ export class LinkListComponent implements OnInit, OnDestroy {
         return isNewPage ? 'createdAt_DESC' : null;
       });
 
-    const setupQuery = (variables) => {
+    // 5
+    const getQuery = (variables): Observable<ApolloQueryResult<AllLinkQueryResponse>> => {
       const query = this.apollo.watchQuery<AllLinkQueryResponse>({
         query: ALL_LINKS_QUERY,
         variables
       });
 
-      // Comment due to issue : https://github.com/kamilkisiela/apollo-client-rxjs/issues/37
       query
         .subscribeToMore({
           document: NEW_LINKS_SUBSCRIPTION,
@@ -119,18 +119,15 @@ export class LinkListComponent implements OnInit, OnDestroy {
           }
         });
 
-      return query;
+      return query.valueChanges;
     };
 
-    // 5
+    // 6
     const allLinkQuery: Observable<ApolloQueryResult<AllLinkQueryResponse>> = Observable
       .combineLatest(first$, skip$, orderBy$, (first, skip, orderBy) => ({ first, skip, orderBy }))
-      .switchMap((variables: any) => {
+      .switchMap((variables: any) => getQuery(variables));
 
-        return setupQuery(variables).valueChanges;
-      });
-
-    // 6
+    // 7
     const querySubscription = allLinkQuery.subscribe((response) => {
       this.allLinks = response.data.allLinks;
       this.count = response.data._allLinksMeta.count;
