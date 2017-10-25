@@ -2,7 +2,7 @@ import {Component, OnDestroy, OnInit} from '@angular/core';
 import {Apollo} from 'apollo-angular';
 import {ALL_LINKS_QUERY, CREATE_LINK_MUTATION, CreateLinkMutationResponse} from '../graphql';
 import {Router} from '@angular/router';
-import {GC_USER_ID} from '../constants';
+import {GC_USER_ID, LINKS_PER_PAGE} from '../constants';
 import {Subscription} from 'rxjs/Subscription';
 
 @Component({
@@ -45,17 +45,19 @@ export class CreateLinkComponent implements OnInit, OnDestroy {
         const data: any = store.readQuery({
           query: ALL_LINKS_QUERY,
           variables: {
-            first: 5,
+            first: LINKS_PER_PAGE,
             skip: 0,
             orderBy: 'createdAt_DESC'
           }
         });
-
-        data.allLinks.push(createLink);
+        let allLinks = data.allLinks.slice();
+        allLinks.splice(0, 0, createLink);
+        allLinks.pop();
+        data.allLinks = allLinks;
         store.writeQuery({
           query: ALL_LINKS_QUERY,
           variables: {
-            first: 5,
+            first: LINKS_PER_PAGE,
             skip: 0,
             orderBy: 'createdAt_DESC'
           },

@@ -144,7 +144,6 @@ export class LinkListComponent implements OnInit, OnDestroy {
   }
 
   updateStoreAfterVote = (store, createVote, linkId) => {
-    console.log("updateStoreAfterVote", store, createVote, linkId);
     let variables;
 
     Observable

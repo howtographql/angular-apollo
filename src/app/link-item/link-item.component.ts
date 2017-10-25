@@ -1,10 +1,16 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {Link} from '../types';
 import {timeDifferenceForDate} from '../utils';
-import {CREATE_VOTE_MUTATION} from '../graphql';
-import {GC_USER_ID, LINKS_PER_PAGE} from '../constants';
+import {CREATE_VOTE_MUTATION, CreateVoteMutationResponse} from '../graphql';
+import {GC_USER_ID} from '../constants';
 import {Apollo} from 'apollo-angular';
 import {Subscription} from 'rxjs/Subscription';
+import {FetchResult} from 'apollo-link';
+import {DataProxy} from "apollo-cache/lib";
+
+interface UpdateStoreAfterVoteCallback {
+  (proxy: DataProxy, mutationResult: FetchResult<CreateVoteMutationResponse>, linkId: string);
+}
 
 @Component({
   selector: 'hn-link-item',
@@ -17,9 +23,9 @@ export class LinkItemComponent implements OnInit, OnDestroy {
 
   @Input()
   index: number = 0;
+
   @Input()
-  updateStoreAfterVote: Function = () => {
-  };
+  updateStoreAfterVote: UpdateStoreAfterVoteCallback;
 
   @Input()
   pageNumber: number = 0;
@@ -27,7 +33,6 @@ export class LinkItemComponent implements OnInit, OnDestroy {
   @Input()
   isAuthenticated: boolean = false;
 
-  linksPerPage = LINKS_PER_PAGE;
   subscriptions: Subscription[] = [];
 
   constructor(private apollo: Apollo) {
