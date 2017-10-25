@@ -8,6 +8,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/switchMap';
 import 'rxjs/add/operator/switch';
+import 'rxjs/add/operator/take';
 import 'rxjs/add/observable/of';
 import 'rxjs/add/observable/combineLatest';
 import {LINKS_PER_PAGE} from '../constants';
@@ -29,6 +30,10 @@ export class LinkListComponent implements OnInit, OnDestroy {
   logged: boolean = false;
 
   subscriptions: Subscription[] = [];
+
+  first$: Observable<number>;
+  skip$: Observable<number>;
+  orderBy$: Observable<string | null>;
 
   constructor(private apollo: Apollo,
               private authService: AuthService,
@@ -55,21 +60,21 @@ export class LinkListComponent implements OnInit, OnDestroy {
       .map((segments) => segments.toString());
 
     // 2
-    const first$: Observable<number> = path$
+    this.first$ = path$
       .map((path) => {
         const isNewPage = path.includes('new');
         return isNewPage ? this.linksPerPage : 100;
       });
 
     // 3
-    const skip$: Observable<number> = Observable.combineLatest(path$, pageParams$)
+    this.skip$ = Observable.combineLatest(path$, pageParams$)
       .map(([path, page]) => {
         const isNewPage = path.includes('new');
         return isNewPage ? (page - 1) * this.linksPerPage : 0;
       });
 
     // 4
-    const orderBy$: Observable<string | null> = path$
+    this.orderBy$ = path$
       .map((path) => {
         const isNewPage = path.includes('new');
         return isNewPage ? 'createdAt_DESC' : null;
@@ -86,7 +91,6 @@ export class LinkListComponent implements OnInit, OnDestroy {
         .subscribeToMore({
           document: NEW_LINKS_SUBSCRIPTION,
           updateQuery: (previous: AllLinkQueryResponse, { subscriptionData }) => {
-
             // Casting to any because typings are not updated
             const newAllLinks = [
               (<any>subscriptionData).Link.node,
@@ -103,7 +107,6 @@ export class LinkListComponent implements OnInit, OnDestroy {
         .subscribeToMore({
           document: NEW_VOTES_SUBSCRIPTION,
           updateQuery: (previous: AllLinkQueryResponse, { subscriptionData }: { subscriptionData: any }) => {
-
             const votedLinkIndex = previous.allLinks.findIndex(link =>
               link.id === subscriptionData.Vote.node.link.id);
 
@@ -116,6 +119,9 @@ export class LinkListComponent implements OnInit, OnDestroy {
               ...previous,
               allLinks: newAllLinks
             }
+          },
+          onError: (err) => {
+            console.log('onError::subscribeToMore for NEW_VOTES_SUBSCRIPTION', err);
           }
         });
 
@@ -124,7 +130,7 @@ export class LinkListComponent implements OnInit, OnDestroy {
 
     // 6
     const allLinkQuery: Observable<ApolloQueryResult<AllLinkQueryResponse>> = Observable
-      .combineLatest(first$, skip$, orderBy$, (first, skip, orderBy) => ({ first, skip, orderBy }))
+      .combineLatest(this.first$, this.skip$, this.orderBy$, (first, skip, orderBy) => ({ first, skip, orderBy }))
       .switchMap((variables: any) => getQuery(variables));
 
     // 7
@@ -135,6 +141,28 @@ export class LinkListComponent implements OnInit, OnDestroy {
     });
 
     this.subscriptions = [...this.subscriptions, querySubscription];
+  }
+
+  updateStoreAfterVote = (store, createVote, linkId) => {
+    console.log("updateStoreAfterVote", store, createVote, linkId);
+    let variables;
+
+    Observable
+      .combineLatest(this.first$, this.skip$, this.orderBy$, (first, skip, orderBy) => ({ first, skip, orderBy }))
+      .take(1)
+      .subscribe(values => variables = values);
+    // 1
+    const data = store.readQuery({
+      query: ALL_LINKS_QUERY,
+      variables
+    });
+
+    // 2
+    const votedLink = data.allLinks.find(link => link.id === linkId);
+    votedLink.votes = createVote.link.votes;
+
+    // 3
+    store.writeQuery({ query: ALL_LINKS_QUERY, variables, data })
   }
 
   get orderedLinks(): Observable<Link[]> {

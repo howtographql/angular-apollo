@@ -1,11 +1,10 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {Link} from '../types';
 import {timeDifferenceForDate} from '../utils';
-import {ALL_LINKS_QUERY, CREATE_VOTE_MUTATION} from '../graphql';
-import {GC_USER_ID} from '../constants';
+import {CREATE_VOTE_MUTATION} from '../graphql';
+import {GC_USER_ID, LINKS_PER_PAGE} from '../constants';
 import {Apollo} from 'apollo-angular';
 import {Subscription} from 'rxjs/Subscription';
-import { LINKS_PER_PAGE } from '../constants'
 
 @Component({
   selector: 'hn-link-item',
@@ -18,6 +17,9 @@ export class LinkItemComponent implements OnInit, OnDestroy {
 
   @Input()
   index: number = 0;
+  @Input()
+  updateStoreAfterVote: Function = () => {
+  };
 
   @Input()
   pageNumber: number = 0;
@@ -58,19 +60,6 @@ export class LinkItemComponent implements OnInit, OnDestroy {
     this.subscriptions = [...this.subscriptions, mutationSubscription];
   }
 
-  updateStoreAfterVote (store, createVote, linkId) {
-    // 1
-    const data = store.readQuery({
-      query: ALL_LINKS_QUERY
-    });
-
-    // 2
-    const votedLink = data.allLinks.find(link => link.id === linkId);
-    votedLink.votes = createVote.link.votes;
-
-    // 3
-    store.writeQuery({ query: ALL_LINKS_QUERY, data })
-  }
 
   humanizeDate(date: string) {
     return timeDifferenceForDate(date);
