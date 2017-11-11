@@ -4,7 +4,8 @@
   [link]="link"
   [index]="index"
   [pageNumber]="pageNumber | async"
-  [isAuthenticated]="logged">
+  [isAuthenticated]="logged"
+[updateStoreAfterVote]="updateStoreAfterVote">
 </hn-link-item>
 <div *ngIf="isNewPage | async">
   <button *ngIf="!(isFirstPage | async)" (click)="previousPage()">Previous</button>

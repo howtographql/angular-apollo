@@ -218,15 +218,6 @@ export class LinkListComponent implements OnInit, OnDestroy {
     }
   }
 
-  getLinksToRender(isNewPage: boolean): Link[] {
-    if (isNewPage) {
-      return this.allLinks;
-    }
-    const rankedLinks = this.allLinks.slice();
-    rankedLinks.sort((l1, l2) => l2.votes.length - l1.votes.length);
-    return rankedLinks
-  }
-
   ngOnDestroy(): void {
     for (let sub of this.subscriptions) {
       if (sub && sub.unsubscribe) {
