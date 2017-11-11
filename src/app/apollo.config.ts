@@ -23,8 +23,7 @@ export class GraphQLModule {
 
     const token = localStorage.getItem(GC_AUTH_TOKEN);
     const authorization = token ? `Bearer ${token}` : null;
-    const headers = new HttpHeaders();
-    headers.append('Authorization', authorization);
+    const headers = new HttpHeaders().append('Authorization', authorization);
 
     const uri = 'https://api.graph.cool/simple/v1/cj7hinwz504ao01273pjz29is';
     const http = httpLink.create({ uri, headers });
